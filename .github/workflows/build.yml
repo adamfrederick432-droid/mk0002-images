@@ -21,9 +21,9 @@ jobs:
       matrix:
         include:
           - image: gen
-            tag: "0.39.0"
+            tag: "0.39.0-r2"
           - image: llm
-            tag: "0.40.0"
+            tag: "0.40.0-r2"
     steps:
       # The gen image's CUDA/PyTorch base needs more room than a runner has free.
       - name: Free runner disk

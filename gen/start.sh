@@ -15,6 +15,14 @@ mkdir -p "$W/models" "$W/output"
 # Recreate ComfyUI's model folder layout on an empty volume (dirs only).
 (cd /opt/ComfyUI/models.dist && find . -type d -exec mkdir -p "$W/models/{}" \;)
 
+# Re-arm the idle auto-stop on EVERY start, not just `gpu up`'s. Vast can start
+# a box by itself: a start queued while the GPU was rented out went through
+# unattended and billed ~27 min with no auto-stop (llm-s, 2026-10-07). The
+# script is put there by the first `gpu up`, and --start replaces a running copy.
+if [ -f /root/.gpu_idle/idle_stop.sh ]; then
+  bash /root/.gpu_idle/idle_stop.sh --start > "$W/.gpu_idle_rearm.log" 2>&1 || echo "WARNING: idle auto-stop re-arm failed (see $W/.gpu_idle_rearm.log)"
+fi
+
 args=(main.py --listen "${COMFY_LISTEN:-127.0.0.1}" --port "${COMFY_PORT:-18188}")
 if [ -n "${COMFY_CPU:-}" ]; then args+=(--cpu); fi
 
