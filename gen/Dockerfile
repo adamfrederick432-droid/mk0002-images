@@ -20,8 +20,19 @@ RUN apt-get update \
       libgl1 libglib2.0-0 procps zstd \
  && rm -rf /var/lib/apt/lists/*
 
+# The 2.11 base marks its Python as externally managed (PEP 668), and pip refuses
+# to install into it. This container has one purpose, so allow it for the build
+# and for bootstrap.sh's own pip installs on the box. The first CI build
+# (2026-10-08) failed here without it.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+# Fail early and say why if python3 isn't the interpreter that has CUDA torch.
+# Every later step, start.sh and bootstrap.sh all run `python3`.
+RUN python3 -c "import torch; print('torch', torch.__version__, 'cuda', torch.version.cuda)" \
+ && python3 -c "import torch, sys; sys.exit(0 if torch.version.cuda else 'torch has no CUDA build')"
+
 RUN git clone --depth 1 --branch "$COMFY_REF" https://github.com/comfyanonymous/ComfyUI /opt/ComfyUI \
- && pip install --no-cache-dir -r /opt/ComfyUI/requirements.txt
+ && python3 -m pip install --no-cache-dir -r /opt/ComfyUI/requirements.txt
 
 # Same four nodes bootstrap.sh installs, pinned to a commit so two builds match.
 # install_node in bootstrap.sh skips a node dir that already exists.

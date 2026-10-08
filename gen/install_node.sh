@@ -9,5 +9,5 @@ git -C "$dest" fetch -q --depth 1 origin "$3"
 git -C "$dest" checkout -q FETCH_HEAD
 rm -rf "$dest/.git"
 if [ -n "${4:-}" ] && [ -f "$dest/$4" ]; then
-  pip install --no-cache-dir -r "$dest/$4"
+  python3 -m pip install --no-cache-dir -r "$dest/$4"
 fi
